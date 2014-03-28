@@ -4,29 +4,43 @@
  * Redistribution and use in source and compiled forms, with or without
  * modification, are permitted under any circumstances. No warranty.
  */
-;(function(global, $, undefined) {
-	$.fn.insertAt = function(content, index) {
+(function (root, factory) {
+    if (typeof define === 'function' && define.amd) {
+        // AMD. Extend jQuery.
+        define(['jquery'], function (jq) {
+            return factory(jq);
+        });
+    } else if (typeof exports === 'object') {
+        // Node. Does not work with strict CommonJS, but
+        // only CommonJS-like environments that support module.exports,
+        // like Node.
+        factory(require('jquery'));
+    } else {
+        // Browser globals
+        factory(root.jQuery);
+    }
+}(this, function ($, undefined) {
+	$.fn.insertAt = function(index, $parent) {
 
 		// Simple case if we are inserting at the beginning
-		if (index === 0) {
-			return this.prepend(content);
+		if (index <= 0) {
+			return $parent.prepend(this);
 		}
 
 		// Otherwise we should examine the children of each DOM object in the
 		// set to determine the correct insert position for each one
-		return this.each(function() {
-			var $this = $(this),
-				el = $this.children().get(index);
+		var $el = this;
+		return $parent.each(function() {
+			var $p = $(this),
+				pred = $p.children().get(index - 1);
 
-			// If an element already exists at this index, insert before it
-			if (el) {
-				$(el).before(content);
-			}
-
-			// Otherwise insert at the end
-			else {
-				$this.append(content);
+			// If an element exists at this index, add ours immediately after it
+			if (pred) {
+				$(pred).after($el);
+			} else {
+				// Otherwise insert at the end
+				$p.append($el);
 			}
 		});
 	};
-})(window, jQuery);
+}));
